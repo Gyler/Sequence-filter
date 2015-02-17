@@ -1,0 +1,106 @@
+#! /usr/bin/perl -w
+use strict;
+use warnings;
+#use diagnostics; 
+use feature qw(say);
+
+open (S, "phe mit.txt") || die "cannot open FASTA file to read: $!";
+open (OUTPUT, ">output.txt");
+
+my @lines = <S>; 
+my @seq = ();
+my $range = 301; #Change this: amino acid sequence coverage, whole number 1 - X
+my $start = 798; #Where to start counting
+my $end = 0 + $range; #don't change
+
+#Removing of the sequence tag, only aa (from >gi to )).
+
+
+foreach my $line (@lines) {
+    $line =~ s/\n//g;
+    if ($line =~ />/g) {
+	$line =~ s/>.*\]/>/g;
+	push @seq, $line;
+    } else {
+	push @seq, $line;
+    }
+}
+
+my $seq = join ('', @seq);
+my @seq_prot = join "\n", split '>', $seq;
+@seq_prot = grep {/[A-Z]/} @seq_prot;
+
+
+#print OUTPUT @seq_prot;
+
+my @rows = ();
+while (my $seq_prot = (<@seq_prot>)) {
+	my $line = substr ($seq_prot, $start, $end);
+	my @row = split //, $line;
+	push @rows, \@row;
+
+}
+
+my @transposed = ();
+# This is each row in your table
+
+for my $row (@rows) {
+  for my $column (0 .. $#{$row}) {
+    push(@{$transposed[$column]}, $row->[$column]);
+  }
+}
+my @line = ();
+for my $new_row (@transposed) {
+  for my $new_col (@{$new_row}) {
+      push (@line, $new_col);
+  }
+ push (@line, '>');
+}
+my @hash;
+my $line = join ('', @line);
+my @blue = join "\n", split ">", $line;
+my @blues = grep {/[\-]/} @blue;
+print OUTPUT @blues; 
+
+my @max;
+my $column;
+for my $line ( <@blue> ) {
+    $column = split '', $line;
+    my $x = argmax( count_characters($line) );
+    #say OUTPUT "@$x\n"; Since i am pushing i do not need this
+}
+
+
+my $sum = eval join '+', @max; #Total sum of aa excluding gaps. 
+my $gap = eval join '+', @hash; #Total number of gaps in the input.
+
+
+say $sum;
+#say $gap;
+say $column;
+say $range;
+say (($sum)/ (($column * $range)) * 100);
+
+
+
+sub count_characters {
+    my $string = shift;
+    my %freq;
+    while ($string =~ /(.)/g) {
+        $freq{ $1 } += 1;
+    }
+    push (@hash, ("$freq{'-'}\n"));
+    delete $freq{'-'};
+    return \%freq;
+}
+
+sub argmax {
+    my $freq = shift;
+    my ($argmax, $max) = each %$freq;
+    while (my ($k, $v) = each %$freq) {
+	
+        ($v > $max) and ($argmax, $max) = ($k, $v);
+    }
+    #return [$argmax, $max];
+	push (@max, "$max\n");
+    }

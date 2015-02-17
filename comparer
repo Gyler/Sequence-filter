@@ -1,0 +1,58 @@
+#!/usr/local/bin/perl5.10.0
+use warnings;
+#local $/ =""; #formats the text so no line spaces are found.
+
+
+#Will open up two text files and print the those that are the same or different, you decide.
+
+open (UNIQUE, ">unique.txt");
+
+
+sub extract_names {
+  my($fh) = @_;
+
+  my %name;
+  while (<$fh>) {
+    ++$name{$1} if /\[   ([^\]]+)   \]/x;
+  }
+
+  %name;
+}
+
+open my $cyt, "<", "1.txt" or die "$0: open: $!"; #document 1
+open my $nuc, "<", "2.txt" or die "$0: open: $!"; #document 2
+
+my %cyt = extract_names $cyt;
+my %nuc = extract_names $nuc;
+
+my %shared;
+for (keys %cyt, keys %nuc) {
+  ++$shared{$_};
+}
+
+
+#Says those that are same in list
+
+#for (keys %shared) {
+# if ($shared{$_} > 1) {
+#  print UNIQUE $_, "\n";
+#}
+#else {
+#delete $shared{$_};
+#}
+#}
+
+#says those that are different!
+
+for (keys %shared) {
+  if ($shared{$_} > 1) {
+    delete $shared{$_};
+  }
+  else {
+   print UNIQUE "$_\n";
+  }
+}
+
+
+#if ($_ =~ /(?<!iso)leucine/ or $_ =~ /(?<!iso)leucyl/) #Negative lookbehind, take a leucine not preceded with iso. =~ /\[([^\]]+)\]/
+ 

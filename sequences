@@ -1,0 +1,37 @@
+#!/usr/local/bin/perl5.10.0
+use warnings;
+#use diagnostics;
+local $/ =""; #formats the text so no line spaces are found.
+
+
+open (IN, '+<', "phe nuc.txt"); #Input file
+open (OUTPUT, ">output.txt");
+
+#If error occurs, search for Full==name or last known entry of output file (the following species is the one causing the error.
+
+my @line = <IN>;
+for (@line) {
+   chomp @line;
+   if ($_ =~ /phenylalanine/ or $_ =~ /phenylalanyl/) {    #Edit here, place your text in between the "//"
+   push @IN, "$_\n" unless ($_ =~ /beta/) or ($_ =~ /mitochondrial/) or ($_ =~ /chloroplastic/) or ($_ =~ /chloroplast/); #To make sure there are no mitochondrial in nuclear or cytoplasmic. If you do want mitochondrial, place a ";#" without quotes, so, ;# before unless.
+}
+}
+
+#will print one of each species to output.txt
+my %seen;
+for (@IN) {
+   chomp;
+   my @unique = split /\|/;
+   my ($species) = $unique[4] =~ /\[([^\]]+)\]/ or die;
+   print OUTPUT "$_\n\n" if !$seen{$species}++;
+}
+
+
+#For when similar names are involved, pre-names, such as isoleucine when looking for leucine. 
+#if ($_ =~ /(?<!iso)leucine/ or $_ =~ /(?<!iso)leucyl/) #Negative lookbehind, take a leucine not preceded with iso.
+close (IN);
+
+
+
+
+
